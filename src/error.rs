@@ -9,15 +9,15 @@ pub enum Error {
 	ConfigWrongFormat(&'static str),
 
 	// -- Modules
-	Model(model::Error),
+	//Model(model::Error),
 }
 
 // region:    --- Froms
-impl From<model::Error> for Error {
-	fn from(val: model::Error) -> Self {
-		Self::Model(val)
-	}
-}
+//impl From<model::Error> for Error {
+//	fn from(val: model::Error) -> Self {
+//		Self::Model(val)
+//	}
+//}
 // endregion: --- Froms
 
 // region:    --- Error Boilerplate

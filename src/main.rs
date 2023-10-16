@@ -2,25 +2,11 @@
 
 // region:    --- Modules
 
-mod config;
-mod ctx;
 mod error;
-mod log;
 mod model;
-mod pwd;
-mod token;
-mod utils;
-mod web;
-// #[cfg(test)] // Commented during early development.
-pub mod _dev_utils;
 
 pub use self::error::{Error, Result};
-pub use config::config;
 
-use crate::model::ModelManager;
-use crate::web::mw_auth::{mw_ctx_require, mw_ctx_resolve};
-use crate::web::mw_res_map::mw_reponse_map;
-use crate::web::{routes_login, routes_static, rpc};
 use axum::{middleware, Router};
 use std::net::SocketAddr;
 use tower_cookies::CookieManagerLayer;
@@ -38,25 +24,19 @@ async fn main() -> Result<()> {
 		.init();
 
 	// -- FOR DEV ONLY
-	_dev_utils::init_dev().await;
 
 	// Initialize ModelManager.
-	let mm = ModelManager::new().await?;
 
 	// -- Define Routes
-	let routes_rpc =
-		rpc::routes(mm.clone()).route_layer(middleware::from_fn(mw_ctx_require));
 
 	let routes_all = Router::new()
-		.merge(routes_login::routes(mm.clone()))
-		.nest("/api", routes_rpc)
-		.layer(middleware::map_response(mw_reponse_map))
-		.layer(middleware::from_fn_with_state(mm.clone(), mw_ctx_resolve))
-		.layer(CookieManagerLayer::new())
-		.fallback_service(routes_static::serve_dir());
+		// `GET /` goes to `root`
+		.route("/", axum::routing::get(crate::web::root))
+		.route("/users", axum::routing::post(crate::web::create_user))
+	;
 
 	// region:    --- Start Server
-	let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+	let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
 	info!("{:<12} - {addr}\n", "LISTENING");
 	axum::Server::bind(&addr)
 		.serve(routes_all.into_make_service())
@@ -65,4 +45,51 @@ async fn main() -> Result<()> {
 	// endregion: --- Start Server
 
 	Ok(())
+}
+
+
+
+mod web {
+	use serde::{Deserialize, Serialize};
+	use axum::{
+		routing::{get, post},
+		http::StatusCode,
+		response::IntoResponse,
+		Json, Router,
+	};
+
+	// basic handler that responds with a static string
+	pub async fn root() -> &'static str {
+		"Hello, World!"
+	}
+
+
+	pub async fn create_user(
+		// this argument tells axum to parse the request body
+		// as JSON into a `CreateUser` type
+		Json(payload): Json<CreateUser>,
+	) -> (StatusCode, Json<User>) {
+		// insert your application logic here
+		let user = User {
+			id: 1337,
+			username: payload.username,
+		};
+
+		// this will be converted into a JSON response
+		// with a status code of `201 Created`
+		(StatusCode::CREATED, Json(user))
+	}
+
+	// the input to our `create_user` handler
+	#[derive(Deserialize)]
+	pub struct CreateUser {
+		username: String,
+	}
+
+	// the output to our `create_user` handler
+	#[derive(Serialize)]
+	pub struct User {
+		id: u64,
+		username: String,
+	}
 }
