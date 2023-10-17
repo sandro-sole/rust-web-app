@@ -45,8 +45,6 @@ async fn main() -> Result<()> {
 	Ok(())
 }
 
-
-
 mod web {
 	use serde::{Deserialize, Serialize};
 	use axum::{

@@ -7,7 +7,7 @@ pub enum Error {
 	// -- Config
 
 	// -- Modules
-	//Model(model::Error),
+	Model(model::Error),
 }
 
 // region:    --- Froms
