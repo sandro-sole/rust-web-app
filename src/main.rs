@@ -1,10 +1,13 @@
-// #![allow(dead_code, unused_imports, unused_variables, unused, unused_mut)]
+#![allow(dead_code, unused_imports, unused_variables, unused, unused_mut)]
 
 // region:    --- Modules
 
 mod error;
 mod model;
 
+mod web;
+
+use chrono::prelude::*;
 pub use self::error::{Error, Result};
 
 use axum::{middleware, Router};
@@ -12,6 +15,7 @@ use std::net::SocketAddr;
 use tower_cookies::CookieManagerLayer;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
+use crate::web::customer_endpoint;
 
 // endregion: --- Modules
 
@@ -29,8 +33,7 @@ async fn main() -> Result<()> {
 
 	let routes_all = Router::new()
 		// `GET /` goes to `root`
-		.route("/", axum::routing::get(crate::web::root))
-		.route("/users", axum::routing::post(crate::web::create_user))
+		.nest("/customer", customer_endpoint::routes())
 	;
 
 	// region:    --- Start Server
@@ -43,51 +46,4 @@ async fn main() -> Result<()> {
 	// endregion: --- Start Server
 
 	Ok(())
-}
-
-
-
-mod web {
-	use serde::{Deserialize, Serialize};
-	use axum::{
-		routing::{get, post},
-		http::StatusCode,
-		response::IntoResponse,
-		Json, Router,
-	};
-
-	// basic handler that responds with a static string
-	pub async fn root() -> &'static str {
-		"Hello, World!"
-	}
-
-
-	pub async fn create_user(
-		// this argument tells axum to parse the request body
-		// as JSON into a `CreateUser` type
-		Json(payload): Json<CreateUser>,
-	) -> (StatusCode, Json<User>) {
-		// insert your application logic here
-		let user = User {
-			id: 1337,
-			username: payload.username,
-		};
-
-		// this will be converted into a JSON response
-		// with a status code of `201 Created`
-		(StatusCode::CREATED, Json(user))
-	}
-
-	// the input to our `create_user` handler
-	#[derive(Deserialize)]
-	pub struct CreateUser {
-		username: String,
-	}
-
-	// the output to our `create_user` handler
-	#[derive(Serialize)]
-	pub struct User {
-		id: u64,
-		username: String,
-	}
 }
