@@ -1,4 +1,4 @@
-// #![allow(unused)] // For early development.
+// #![allow(dead_code, unused_imports, unused_variables, unused, unused_mut)]
 
 // region:    --- Modules
 
