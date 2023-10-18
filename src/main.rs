@@ -7,16 +7,17 @@ mod model;
 
 mod web;
 
-use chrono::prelude::*;
 pub use self::error::{Error, Result};
 
+use chrono::prelude::*;
+
+use crate::model::ModelManager;
+use crate::web::customer_endpoint;
 use axum::{middleware, Router};
 use std::net::SocketAddr;
 use tower_cookies::CookieManagerLayer;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
-use crate::model::ModelManager;
-use crate::web::customer_endpoint;
 
 // endregion: --- Modules
 
@@ -32,11 +33,9 @@ async fn main() -> Result<()> {
 	let mm = ModelManager::new().await?;
 
 	// -- Define Routes
-
 	let routes_all = Router::new()
 		// `GET /` goes to `root`
-		.nest("/customer", customer_endpoint::routes(mm.clone()))
-	;
+		.nest("/customer", customer_endpoint::routes(mm.clone()));
 
 	// region:    --- Start Server
 	let addr = SocketAddr::from(([0, 0, 0, 0], 8080));

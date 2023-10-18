@@ -1,16 +1,21 @@
+use serde::Serialize;
+use serde_with::{serde_as, DisplayFromStr};
 use crate::model;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Debug)]
+
+#[derive(Debug, Serialize)]
 pub enum Error {
 	// -- Config
 
 	// -- Modules
 	Model(model::Error),
+
+	//Extern
+
 }
 
-// region:    --- Froms
 // region:    --- Froms
 impl From<model::Error> for Error {
 	fn from(val: model::Error) -> Self {
