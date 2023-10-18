@@ -7,15 +7,17 @@ pub enum Error {
 	// -- Config
 
 	// -- Modules
-	//Model(model::Error),
+	Model(model::Error),
 }
 
 // region:    --- Froms
-//impl From<model::Error> for Error {
-//	fn from(val: model::Error) -> Self {
-//		Self::Model(val)
-//	}
-//}
+// region:    --- Froms
+impl From<model::Error> for Error {
+	fn from(val: model::Error) -> Self {
+		Self::Model(val)
+	}
+}
+
 // endregion: --- Froms
 
 // region:    --- Error Boilerplate

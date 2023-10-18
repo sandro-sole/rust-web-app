@@ -40,7 +40,7 @@ mod test {
   use crate::model::customer::{Address, AddressType, Country, Customer};
 
   #[test]
-  fn cust_deserial() {
+  fn custom_deserialize() {
     tracing_subscriber::fmt()
       .with_env_filter(EnvFilter::from_default_env())
       .init();

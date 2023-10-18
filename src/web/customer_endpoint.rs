@@ -2,11 +2,13 @@ use axum::{Json, Router};
 use axum::http::StatusCode;
 use tracing::info;
 use crate::model::customer::Customer;
+use crate::model::ModelManager;
 
-pub fn routes() -> Router {
+pub fn routes(mm: ModelManager) -> Router {
   let router = Router::new()
 // `GET /` goes to `root`
     .route("/customers", axum::routing::post(create_customer))
+    .with_state(mm)
     ;
   router
 }
