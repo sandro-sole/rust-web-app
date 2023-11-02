@@ -5,12 +5,13 @@ mod error;
 mod base;
 
 pub mod customer;
+pub(crate) mod account;
 
 use axum::body::HttpBody;
 use surrealdb::opt::auth::Root;
 pub use self::error::{Error, Result};
 
-use crate::model::store::{new_db_connection, Db};
+use crate::model::store::{Db, new_db_connection};
 
 pub trait Entity{}
 

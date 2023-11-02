@@ -8,12 +8,34 @@ use crate::model::base::DbBmc;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Customer {
+  pub id: Thing,
+  pub first_name: String,
+  pub last_name: String,
+  //pub birth_date: NaiveDate,
+  //pub address: Vec<Address>,
+}
+
+impl From<CreateCustomer> for Customer {
+  fn from(web_view: CreateCustomer) -> Self {
+    Self {
+      id: Thing { tb: "customer".to_string(), id: web_view.id.into() },
+      first_name: web_view.first_name,
+      last_name: web_view.last_name,
+    }
+  }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct CreateCustomer {
   pub id: String,
   pub first_name: String,
   pub last_name: String,
-  pub birth_date: NaiveDate,
-  pub address: Vec<Address>,
+  //pub birth_date: NaiveDate,
+  //pub address: Vec<Address>,
 }
+
+
+
 
 #[derive(Debug,Clone, Deserialize, Serialize)]
 pub enum AddressType {
@@ -48,8 +70,8 @@ impl DbBmc for CustomerBmc {
 }
 
 impl CustomerBmc {
-  pub async fn create(mm: &ModelManager, c: Customer) -> Result<()> {
-    base::create::<Self,_ >(mm, c).await?;
+  pub async fn create(mm: &ModelManager, c: &Customer) -> Result<()> {
+    base::create::<Self,_ >(mm, c, c.id.id.to_raw().as_str()).await?;
     Ok( () )
   }
 
@@ -58,36 +80,6 @@ impl CustomerBmc {
     Ok(list_of_customers)
   }
 }
-
-impl Entity for Account{}
-pub struct AccountBmc;
-
-impl DbBmc for AccountBmc {
-  const TABLE: &'static str = "account";
-}
-
-impl AccountBmc {
-  pub async fn create(mm: &ModelManager, a: Account) -> Result<()> {
-    base::create::<Self,_ >(mm, a).await.unwrap();
-    Ok( () )
-  }
-}
-
-/*           */
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Account {
-  pub id: String,
-  pub account_nr: String,
-  pub account_status: AccountStatus,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub enum AccountStatus {
-  Active,
-  Inactive,
-
-}
-
 
 
 

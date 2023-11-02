@@ -16,25 +16,26 @@ struct Record<T> {
 }
 
 
-pub async fn create<MC, E>(mm: &ModelManager, data: E) -> Result<Id>
+pub async fn create<MC, E>(mm: &ModelManager, data: &E, id: &str) -> Result<Id>
   where
     MC: DbBmc,
     E: Entity + Serialize + Debug,
     E: for<'e> Deserialize<'e>
 {
   let db = mm.db();
-  let created: Vec<Record<E>> = db.create(MC::TABLE)
+  let result :Vec<E> = db.create(MC::TABLE)
     .content(data).await?;
 
-  dbg!(&created);
-  todo!()
+  //dbg!(&created);
+  //todo!()
   //Ok(created.first().ok_or(Error::EntityCreation)?.id.id.to_string())
+  Ok("4711".to_string())
 }
 
 pub async fn list<MC, E>(mm: &ModelManager) -> Result<Vec<E>>
   where
     MC: DbBmc,
-    E: Entity + Serialize + Debug,
+    E: Entity + Serialize ,
     E: for<'e> Deserialize<'e>
 {
   let db = mm.db();

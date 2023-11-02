@@ -4,7 +4,8 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde_json::json;
 use tracing::info;
-use crate::model::customer::{Account, AccountBmc, Customer, CustomerBmc};
+use crate::model::account::{Account, AccountBmc,};
+use crate::model::customer::{ CreateCustomer, Customer, CustomerBmc};
 use crate::model::ModelManager;
 
 pub fn routes(mm: ModelManager) -> Router {
@@ -12,7 +13,7 @@ pub fn routes(mm: ModelManager) -> Router {
 // `GET /` goes to `root`
     //.route("/customers", axum::routing::post(create_customer))
     .route("/customers", axum::routing::get(get_customers))
-    .route("/accounts", axum::routing::post(create_account))
+    .route("/customer", axum::routing::post(post_customer))
     .with_state(mm)
     ;
   router
@@ -25,7 +26,7 @@ pub async fn create_customer(
   Json(payload): Json<Customer>,
 ) -> Response {
   // insert your application logic here
-  let Ok(count) = CustomerBmc::create(&mm, payload.clone()).await else {
+  let Ok(count) = CustomerBmc::create(&mm, &payload).await else {
     return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
   };
 
@@ -40,10 +41,7 @@ pub async fn get_customers(
   // as JSON into a `CreateUser` type
   State(mm): State<ModelManager>,
 ) -> Response {
-  // insert your application logic here
-  let list = CustomerBmc::list(&mm).await;
-  dbg!(&list);
-
+  let abc = 123;
   let Ok(customers) = CustomerBmc::list(&mm).await else {
     return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
   };
@@ -55,18 +53,18 @@ pub async fn get_customers(
 }
 
 
-pub async fn create_account(
+pub async fn post_customer(
   // this argument tells axum to parse the request body
   // as JSON into a `CreateUser` type
   State(mm): State<ModelManager>,
-  Json(payload): Json<Account>,
-) -> (StatusCode, Json<Account>) {
+  Json(payload): Json<CreateCustomer>,
+) -> (StatusCode, Json<Customer>) {
   // insert your application logic here
+  let customer = payload.into();
+  CustomerBmc::create(&mm, &customer).await.unwrap();
 
-  AccountBmc::create(&mm, payload.clone()).await.unwrap();
-
-  info!("{:<12} - {:?}\n", "CREATE", &payload);
+  info!("{:<12} - {:?}\n", "CREATE", &customer);
   // this will be converted into a JSON response
   // with a status code of `201 Created`
-  (StatusCode::CREATED, Json(payload))
+  (StatusCode::CREATED, Json(customer))
 }

@@ -2,7 +2,6 @@ mod error;
 
 use axum::body::HttpBody;
 use surrealdb::engine::remote::ws::{Client, Ws};
-use surrealdb::opt::auth::Root;
 use surrealdb::Surreal;
 pub use self::error::{Error, Result};
 
