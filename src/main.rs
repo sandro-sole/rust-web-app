@@ -12,7 +12,7 @@ pub use self::error::{Error, Result};
 use chrono::prelude::*;
 
 use crate::model::ModelManager;
-use crate::web::customer_endpoint;
+use crate::web::{account_endpoint, customer_endpoint};
 use axum::{middleware, Router};
 use std::net::SocketAddr;
 use tower_cookies::CookieManagerLayer;
@@ -35,13 +35,15 @@ async fn main() -> Result<()> {
 	// -- Define Routes
 	let routes_all = Router::new()
 		// `GET /` goes to `root`
-		.nest("/api", customer_endpoint::routes(mm.clone()));
+		.nest("/customer", customer_endpoint::routes(mm.clone()))
+		.nest("/account", account_endpoint::routes(mm.clone()))
+		;
 
 	// region:    --- Start Server
 	let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
 	info!("{:<12} - {addr}\n", "LISTENING");
 	axum::Server::bind(&addr)
-		.serve(routes_all.into_make_service())
+		.serve(Router::new().nest("/api", routes_all).into_make_service())
 		.await
 		.unwrap();
 	// endregion: --- Start Server

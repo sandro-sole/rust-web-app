@@ -4,52 +4,39 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde_json::json;
 use tracing::info;
-use crate::model::account::{Account, AccountBmc,};
-use crate::model::customer::{Address, CreateCustomer, Customer, CustomerBmc};
+use crate::model::account::{Account, AccountBmc, CreateAccount};
 use crate::model::ModelManager;
 
 pub fn routes(mm: ModelManager) -> Router {
   let router = Router::new()
 // `GET /` goes to `root`
     //.route("/customers", axum::routing::post(create_customer))
-    .route("/", axum::routing::get(get_customers))
-    .route("/", axum::routing::post(post_customer))
-    .route("/:id", axum::routing::get(get_customer))
-    .route("/:id/addresses", axum::routing::get(get_addresses_for_customer))
-    .route("/:id/address", axum::routing::post(post_address_for_customer))
+    .route("/", axum::routing::get(get_accounts))
+    .route("/", axum::routing::post(post_account))
+    .route("/:id", axum::routing::get(get_account))
     .with_state(mm)
     ;
   router
 }
 
-pub async fn get_customer (
+pub async fn get_account(
   State(mm): State<ModelManager>,
   Path((id,)): Path<(String,)>
 ) -> Response {
-  let Ok(Some(customer)) = CustomerBmc::get(&mm, id.as_str()).await else {
+  let Ok(Some(customer)) = AccountBmc::get(&mm, id.as_str()).await else {
     return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
   };
   (StatusCode::OK, Json(customer)).into_response()
-}
-
-pub async fn get_addresses_for_customer(
-  State(mm): State<ModelManager>,
-  Path((id,)): Path<(String,)>
-) -> Response {
-  let Ok(Some(customer)) = CustomerBmc::get(&mm, id.as_str()).await else {
-    return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
-  };
-  (StatusCode::OK, Json(customer.address)).into_response()
 }
 
 pub async fn create_customer(
   // this argument tells axum to parse the request body
   // as JSON into a `CreateUser` type
   State(mm): State<ModelManager>,
-  Json(payload): Json<Customer>,
+  Json(payload): Json<Account>,
 ) -> Response {
   // insert your application logic here
-  let Ok(count) = CustomerBmc::create(&mm, &payload).await else {
+  let Ok(count) = AccountBmc::create(&mm, &payload).await else {
     return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
   };
 
@@ -59,13 +46,12 @@ pub async fn create_customer(
   (StatusCode::CREATED, Json(payload)).into_response()
 }
 
-pub async fn get_customers(
+pub async fn get_accounts(
   // this argument tells axum to parse the request body
   // as JSON into a `CreateUser` type
   State(mm): State<ModelManager>,
 ) -> Response {
-  let abc = 123;
-  let Ok(customers) = CustomerBmc::list(&mm).await else {
+  let Ok(customers) = AccountBmc::list(&mm).await else {
     return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
   };
 
@@ -75,31 +61,18 @@ pub async fn get_customers(
   (StatusCode::OK, Json(customers)).into_response()
 }
 
-pub async fn post_address_for_customer(
-  State(mm): State<ModelManager>,
-  Path((id,)): Path<(String,)>,
-  Json(payload): Json<Address>,
-) -> Response {
-
-  let Ok(Some(customer)) = CustomerBmc::add_address(&mm, id.as_str(), payload).await else {
-    return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
-  };
-
-  (StatusCode::CREATED, Json(customer)).into_response()
-}
-
-pub async fn post_customer(
+pub async fn post_account(
   // this argument tells axum to parse the request body
   // as JSON into a `CreateUser` type
   State(mm): State<ModelManager>,
-  Json(payload): Json<CreateCustomer>,
-) -> (StatusCode, Json<Customer>) {
+  Json(payload): Json<CreateAccount>,
+) -> (StatusCode, Json<Account>) {
   // insert your application logic here
-  let customer = payload.into();
-  CustomerBmc::create(&mm, &customer).await.unwrap();
+  let account = payload.into();
+  AccountBmc::create(&mm, &account).await.unwrap();
 
-  info!("{:<12} - {:?}\n", "CREATE", &customer);
+  info!("{:<12} - {:?}\n", "CREATE", &account);
   // this will be converted into a JSON response
   // with a status code of `201 Created`
-  (StatusCode::CREATED, Json(customer))
+  (StatusCode::CREATED, Json(account))
 }
