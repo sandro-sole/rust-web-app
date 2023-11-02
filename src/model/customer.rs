@@ -12,7 +12,7 @@ pub struct Customer {
   pub first_name: String,
   pub last_name: String,
   //pub birth_date: NaiveDate,
-  //pub address: Vec<Address>,
+  pub address: Option<Vec<Address>>,
 }
 
 impl From<CreateCustomer> for Customer {
@@ -21,6 +21,7 @@ impl From<CreateCustomer> for Customer {
       id: Thing { tb: "customer".to_string(), id: web_view.id.into() },
       first_name: web_view.first_name,
       last_name: web_view.last_name,
+      address: None,
     }
   }
 }
@@ -31,7 +32,7 @@ pub struct CreateCustomer {
   pub first_name: String,
   pub last_name: String,
   //pub birth_date: NaiveDate,
-  //pub address: Vec<Address>,
+  pub address: Vec<Address>,
 }
 
 
@@ -71,8 +72,23 @@ impl DbBmc for CustomerBmc {
 
 impl CustomerBmc {
   pub async fn create(mm: &ModelManager, c: &Customer) -> Result<()> {
-    base::create::<Self,_ >(mm, c, c.id.id.to_raw().as_str()).await?;
+    base::create::<Self,_ >(mm, c).await?;
     Ok( () )
+  }
+
+  pub async fn get(mm: &ModelManager, id: &str) -> Result<Option<Customer>> {
+    base::get::<Self,_ >(mm, id).await
+  }
+
+  pub async fn add_address(mm: &ModelManager, id: &str, address: Address) -> Result<Option<Customer>> {
+    let mut customer:Customer = base::get::<Self,_ >(mm, id).await?.unwrap();
+    let addresses = match customer.address {
+      None => vec![address],
+      Some(mut addresses) => {addresses.push(address); addresses}
+    };
+    customer.address = Some(addresses);
+    let customer = base::update::<Self,_ >(mm, &customer, id).await?;
+    Ok(Some(customer))
   }
 
   pub async fn list(mm: &ModelManager) -> Result<Vec<Customer>> {
@@ -87,7 +103,7 @@ impl CustomerBmc {
 mod test {
   use tracing::info;
   use tracing_subscriber::EnvFilter;
-  use crate::model::customer::{Account, AccountStatus, Address, AddressType, Country, Customer};
+  use crate::model::customer::{Address, AddressType, Country, Customer};
 
   #[test]
   fn custom_deserialize() {

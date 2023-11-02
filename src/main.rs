@@ -35,7 +35,7 @@ async fn main() -> Result<()> {
 	// -- Define Routes
 	let routes_all = Router::new()
 		// `GET /` goes to `root`
-		.nest("/customer", customer_endpoint::routes(mm.clone()));
+		.nest("/api", customer_endpoint::routes(mm.clone()));
 
 	// region:    --- Start Server
 	let addr = SocketAddr::from(([0, 0, 0, 0], 8080));

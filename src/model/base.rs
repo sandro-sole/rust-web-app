@@ -15,8 +15,20 @@ struct Record<T> {
   data: T
 }
 
+pub async fn get<MC, E>(mm: &ModelManager, id: &str) -> Result<Option<E>>
+  where
+    MC: DbBmc,
+    E: Entity + Serialize + Debug,
+    E: for<'e> Deserialize<'e>
+{
+  let db = mm.db();
+  let result: Option<E> = db
+    .select((MC::TABLE, id))
+    .await?;
 
-pub async fn create<MC, E>(mm: &ModelManager, data: &E, id: &str) -> Result<Id>
+  Ok(result)
+}
+pub async fn create<MC, E>(mm: &ModelManager, data: &E) -> Result<Id>
   where
     MC: DbBmc,
     E: Entity + Serialize + Debug,
@@ -30,6 +42,21 @@ pub async fn create<MC, E>(mm: &ModelManager, data: &E, id: &str) -> Result<Id>
   //todo!()
   //Ok(created.first().ok_or(Error::EntityCreation)?.id.id.to_string())
   Ok("4711".to_string())
+}
+pub async fn update<MC, E>(mm: &ModelManager, data: &E, id: &str) -> Result<E>
+  where
+    MC: DbBmc,
+    E: Entity + Serialize + Debug,
+    E: for<'e> Deserialize<'e>
+{
+  let db = mm.db();
+  let result :Option<E> = db.update((MC::TABLE, id))
+    .content(data).await?;
+
+  let Some(record) = result else {
+    return Err(Error::EntityCreation);
+  };
+  Ok(record)
 }
 
 pub async fn list<MC, E>(mm: &ModelManager) -> Result<Vec<E>>

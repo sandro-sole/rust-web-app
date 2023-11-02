@@ -1,11 +1,11 @@
 use axum::{Json, Router};
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde_json::json;
 use tracing::info;
 use crate::model::account::{Account, AccountBmc,};
-use crate::model::customer::{ CreateCustomer, Customer, CustomerBmc};
+use crate::model::customer::{Address, CreateCustomer, Customer, CustomerBmc};
 use crate::model::ModelManager;
 
 pub fn routes(mm: ModelManager) -> Router {
@@ -14,9 +14,32 @@ pub fn routes(mm: ModelManager) -> Router {
     //.route("/customers", axum::routing::post(create_customer))
     .route("/customers", axum::routing::get(get_customers))
     .route("/customer", axum::routing::post(post_customer))
+    .route("/customer/:id", axum::routing::get(get_customer))
+    .route("/customer/:id/addresses", axum::routing::get(get_addresses_for_customer))
+    .route("/customer/:id/address", axum::routing::post(post_address_for_customer))
     .with_state(mm)
     ;
   router
+}
+
+pub async fn get_customer (
+  State(mm): State<ModelManager>,
+  Path((id,)): Path<(String,)>
+) -> Response {
+  let Ok(Some(customer)) = CustomerBmc::get(&mm, id.as_str()).await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
+  };
+  (StatusCode::OK, Json(customer)).into_response()
+}
+
+pub async fn get_addresses_for_customer(
+  State(mm): State<ModelManager>,
+  Path((id,)): Path<(String,)>
+) -> Response {
+  let Ok(Some(customer)) = CustomerBmc::get(&mm, id.as_str()).await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
+  };
+  (StatusCode::OK, Json(customer.address)).into_response()
 }
 
 pub async fn create_customer(
@@ -52,6 +75,18 @@ pub async fn get_customers(
   (StatusCode::OK, Json(customers)).into_response()
 }
 
+pub async fn post_address_for_customer(
+  State(mm): State<ModelManager>,
+  Path((id,)): Path<(String,)>,
+  Json(payload): Json<Address>,
+) -> Response {
+
+  let Ok(Some(customer)) = CustomerBmc::add_address(&mm, id.as_str(), payload).await else {
+    return (StatusCode::INTERNAL_SERVER_ERROR, () ).into_response();
+  };
+
+  (StatusCode::CREATED, Json(customer)).into_response()
+}
 
 pub async fn post_customer(
   // this argument tells axum to parse the request body
