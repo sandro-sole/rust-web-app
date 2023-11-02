@@ -24,8 +24,8 @@ impl ModelManager {
   /// Constructor
   pub async fn new() -> Result<Self> {
     let db = new_db_connection().await?;
-    db.signin(Root{username: "root", password: "root"})
-      .await?;
+    //db.signin(Root{username: "root", password: "root"})
+    //  .await?;
 
     db.use_ns("customer").use_db("crm").await?;
     Ok(ModelManager { db })
