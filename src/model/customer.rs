@@ -52,6 +52,11 @@ impl CustomerBmc {
     base::create::<Self,_ >(mm, c).await?;
     Ok( () )
   }
+
+  pub async fn list(mm: &ModelManager) -> Result<Vec<Customer>> {
+    let list_of_customers = base::list::<Self,_ >(mm).await?;
+    Ok(list_of_customers)
+  }
 }
 
 impl Entity for Account{}
