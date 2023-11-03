@@ -62,7 +62,11 @@ pub enum Country {
 }
 
 
-impl Entity for Customer{}
+impl Entity for Customer{
+  fn get_id(&self) -> Thing {
+    self.id.clone()
+  }
+}
 
 pub struct CustomerBmc;
 

@@ -12,7 +12,7 @@ pub use self::error::{Error, Result};
 use chrono::prelude::*;
 
 use crate::model::ModelManager;
-use crate::web::{account_endpoint, customer_endpoint};
+use crate::web::{account_endpoint, customer_endpoint, role_endpoint};
 use axum::{middleware, Router};
 use std::net::SocketAddr;
 use tower_cookies::CookieManagerLayer;
@@ -37,6 +37,7 @@ async fn main() -> Result<()> {
 		// `GET /` goes to `root`
 		.nest("/customer", customer_endpoint::routes(mm.clone()))
 		.nest("/account", account_endpoint::routes(mm.clone()))
+		.nest("/role", role_endpoint::routes(mm.clone()))
 		;
 
 	// region:    --- Start Server

@@ -6,6 +6,7 @@ use serde_json::json;
 use tracing::info;
 use crate::model::account::{Account, AccountBmc, CreateAccount};
 use crate::model::ModelManager;
+use crate::web::role_endpoint;
 
 pub fn routes(mm: ModelManager) -> Router {
   let router = Router::new()
@@ -14,6 +15,7 @@ pub fn routes(mm: ModelManager) -> Router {
     .route("/", axum::routing::get(get_accounts))
     .route("/", axum::routing::post(post_account))
     .route("/:id", axum::routing::get(get_account))
+//    .nest("/:id/role", role_endpoint::routes(mm.clone()).with_state(mm.clone()))
     .with_state(mm)
     ;
   router

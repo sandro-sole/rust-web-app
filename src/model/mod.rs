@@ -5,15 +5,20 @@ mod error;
 mod base;
 
 pub mod customer;
-pub(crate) mod account;
+pub mod account;
+
+pub mod role;
 
 use axum::body::HttpBody;
 use surrealdb::opt::auth::Root;
+use surrealdb::sql::Thing;
 pub use self::error::{Error, Result};
 
 use crate::model::store::{Db, new_db_connection};
 
-pub trait Entity{}
+pub trait Entity {
+  fn get_id(&self) -> Thing;
+}
 
 #[derive(Clone)]
 pub struct ModelManager {

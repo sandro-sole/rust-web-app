@@ -39,7 +39,11 @@ pub enum AccountStatus {
 }
 
 
-impl Entity for Account{}
+impl Entity for Account{
+  fn get_id(&self) -> Thing {
+    self.id.clone()
+  }
+}
 pub struct AccountBmc;
 
 impl DbBmc for AccountBmc {
